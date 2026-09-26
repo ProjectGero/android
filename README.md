@@ -12,8 +12,14 @@ Install Git LFS before cloning because some selected submodules contain LFS-mana
 
 ```sh
 git lfs install
-git clone --recurse-submodules https://github.com/ProjectGero/android.git
+git clone --depth 1 https://github.com/ProjectGero/android.git
+cd android
+git -c submodule.recurse=false submodule update --init --depth 1 --jobs 8
 ```
+
+This initializes the 670 ProjectGero AOSP component repositories only. Some
+preserved upstream components contain their own nested Git submodules; those
+are intentionally not initialized by the standard ProjectGero checkout.
 
 The final Phase 2B inventory identifies these LFS-affected submodules:
 
