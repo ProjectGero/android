@@ -2,22 +2,15 @@
 
 This guide documents the successful ProjectGero Android 9 `db410c-userdebug` build. It validates source and build production, not physical-board flashing or boot.
 
-## Host requirements
+## Host bootstrap
 
-Use a Linux x86_64 host with `bc`, `m4`, `zip`, `wget`, `build-essential`, zlib development headers, libffi development headers, libbz2 development headers, readline development headers, sqlite development headers, and the legacy `libtinfo.so.5` and `libncurses.so.5` libraries. Do not create `.so.6` to `.so.5` symlinks.
+Use an x86_64 Debian or Ubuntu host. ProjectGero provides a repeatable bootstrap for the small, validated host dependency set: 20 apt packages, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39.
 
-The validated host used a dedicated Python 2.7.18 with working zlib, Mako 1.1.4, and MarkupSafe 1.1.1. This is host setup, not a ProjectGero source modification:
+This build does **not** require Android Studio, an Android SDK, or a modern NDK. The checkout already pins the historical compiler and toolchain prebuilts that Android 9 needs.
 
-```sh
-export PATH="$HOME/aosp-python2/bin:$PATH"
-export LC_ALL=C
-export LANG=C
-hash -r
-python --version
-python -c 'import zlib; print("zlib OK:", zlib.ZLIB_VERSION)'
-```
+The bootstrap never replaces `/usr/bin/python`; its private tools default to `$HOME/.local/projectgero-tools`. It also never creates unsafe `libtinfo.so.6` or `libncurses.so.6` symlinks: the historical prebuilts require ABI-compatible `.so.5` libraries.
 
-## Clone and LFS
+## Clone, LFS, and setup
 
 Install Git LFS before checkout and use the first-level-only model:
 
@@ -26,6 +19,27 @@ git lfs install
 git clone --depth 1 https://github.com/ProjectGero/android.git
 cd android
 git -c submodule.recurse=false submodule update --init --depth 1 --jobs 8
+
+# Inspect without changing the host. This reports READY or MISSING items.
+./scripts/setup-db410c-android9-host.sh --check --projectgero-root "$PWD"
+
+# Install only missing validated host dependencies and verify them afterwards.
+./scripts/setup-db410c-android9-host.sh --install
+
+# Use the rebuilt Flex only for this checkout's build; this intentionally dirties
+# one tracked executable and is never committed.
+./scripts/setup-db410c-android9-host.sh --apply-flex-override "$PWD"
+
+# Export the private Python 2 runtime and deterministic locale for this shell.
+source scripts/projectgero-db410c-env.sh
+```
+
+`--install` uses `sudo` only for apt packages; all ProjectGero-owned host tools live under the invoking user's tools prefix. It downloads only over HTTPS and validates the Python, Mako, MarkupSafe, and ProjectGero-pinned Flex source checksums. On a Debian/Ubuntu release where legacy ABI packages are absent from configured apt repositories, the script requires explicit HTTPS URL and SHA256 environment-variable pairs rather than using a random or stale mirror; `--help` lists those variables.
+
+Run the final read-only validation at any time:
+
+```sh
+./scripts/setup-db410c-android9-host.sh --verify --projectgero-root "$PWD"
 ```
 
 This initializes the 670 ProjectGero first-level components. Do not use `git clone --recurse-submodules`: component-owned nested upstream submodules are intentionally not initialized. Git LFS must materialize selected payloads; affected paths include `device/google/wahoo-kernel`, `tools/dexter`, `prebuilts/clang/host/linux-x86`, `tools/external/gradle`, `prebuilts/jdk/jdk9`, `prebuilts/misc`, and `prebuilts/tools`.
@@ -38,44 +52,29 @@ The tracked historical `prebuilts/misc/linux-x86/flex/flex-2.5.39` may start and
 flex-2.5.39: loadlocale.c:130: _nl_intern_locale_data assertion failed
 ```
 
-The verified workaround is to rebuild Flex 2.5.39 on the current host and use it as a local build-time override. The historical source compatibility correction in `scanflags.c` is:
+The setup script rebuilds **exactly Flex 2.5.39** from the checksum-verified archive already tracked in `prebuilts/misc`, applies the historical `scanflags.c` source compatibility correction exactly once, records the rebuilt executable SHA256, and validates both the Mesa program lexer and GLSL lexer when a ProjectGero root is supplied. The correction changes the historical `lerrsf_fatal(... %ld ..., (long)...);` form to `lerrif(... %d ..., (int)...);`; it is a source compatibility correction, not a claim that this line alone causes the glibc locale assertion. The critical runtime remedy is a Flex executable rebuilt for the current host.
 
-```c
-/* historical form */
-lerrsf_fatal(_("Unable to allocate %ld of stack"), (long)sizeof(scanflags_t));
-/* validated compatibility form */
-lerrif(_("Unable to allocate %d of stack"), (int)sizeof(scanflags_t));
-```
-
-This is a source/build compatibility correction; do not attribute the glibc locale crash to that line alone. The runtime remedy is a Flex executable rebuilt for the current host. After rebuilding, validate both inputs before use:
+`--apply-flex-override` copies that rebuilt executable to the effective Android path, preserves the original mode and hashes, and records state for a safe restore. It is a `BUILD_TOOL_RUNTIME_OVERRIDE`, not ProjectGero history; do not commit the rebuilt ELF. To restore only that recorded override later:
 
 ```sh
-<rebuilt-flex> -o /tmp/program-lex.yy.c external/mesa3d/src/mesa/program/program_lexer.l
-<rebuilt-flex> --nounistd -o /tmp/glsl-lexer.cpp external/mesa3d/src/compiler/glsl/glsl_lexer.ll
+./scripts/setup-db410c-android9-host.sh --restore-flex "$PWD"
 ```
 
-Android invokes the fixed path `prebuilts/misc/linux-x86/flex/flex-2.5.39`. For the validated build, the rebuilt executable replaced that path locally. This is a `BUILD_TOOL_RUNTIME_OVERRIDE`, not ProjectGero history; do not commit the rebuilt ELF. Confirm the only intentional change with:
-
-```sh
-git status --short prebuilts/misc
-```
+The restore refuses to overwrite an unrecognized modification and uses Git only for `prebuilts/misc/linux-x86/flex/flex-2.5.39`. It never runs a broad reset or clean.
 
 ## DB410c environment
 
-From the ProjectGero root:
+From the ProjectGero root, after the bootstrap commands above:
 
 ```sh
-export PATH="$HOME/aosp-python2/bin:$PATH"
-export LC_ALL=C
-export LANG=C
-hash -r
+source scripts/projectgero-db410c-env.sh
 source build/envsetup.sh
 lunch db410c-userdebug
-export PATH="$HOME/aosp-python2/bin:$PATH"
+source scripts/projectgero-db410c-env.sh
 hash -r
 ```
 
-Assert PATH again after `lunch` so build tools select the intended Python. Expected variables are `PLATFORM_VERSION=9`, `TARGET_PRODUCT=db410c`, `TARGET_BUILD_VARIANT=userdebug`, `TARGET_ARCH=arm`, and `TARGET_ARCH_VARIANT=armv7-a-neon`.
+Assert the environment helper again after `lunch` so build tools select the intended Python. Expected variables are `PLATFORM_VERSION=9`, `TARGET_PRODUCT=db410c`, `TARGET_BUILD_VARIANT=userdebug`, `TARGET_ARCH=arm`, and `TARGET_ARCH_VARIANT=armv7-a-neon`.
 
 Envsetup generates ignored local directories under `device/linaro/generic/`: `db410c`, `linaro_arm`, `linaro_arm64`, `linaro_arm64_only`, and `linaro_x86_64`. Do not commit them. ProjectGero already contains the persistent `PRODUCT_NAME` compatibility fix in `vendorsetup.sh`.
 
@@ -84,7 +83,7 @@ Envsetup generates ignored local directories under `device/linaro/generic/`: `db
 From the ProjectGero root, build the ARM64 qcomlt-4.14 kernel:
 
 ```sh
-export PATH="$HOME/aosp-python2/bin:$PATH"
+source scripts/projectgero-db410c-env.sh
 cd db410c-kernel
 export ARCH=arm64
 export CROSS_COMPILE="$(cd .. && pwd)/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
@@ -105,12 +104,10 @@ This kernel output and combined artifact are generated local state; do not commi
 
 ```sh
 cd <ProjectGero root>
-export PATH="$HOME/aosp-python2/bin:$PATH"
-export LC_ALL=C
-export LANG=C
+source scripts/projectgero-db410c-env.sh
 source build/envsetup.sh
 lunch db410c-userdebug
-export PATH="$HOME/aosp-python2/bin:$PATH"
+source scripts/projectgero-db410c-env.sh
 hash -r
 python --version
 python -c 'import zlib; print("zlib OK:", zlib.ZLIB_VERSION)'
@@ -121,9 +118,9 @@ The successful validation used `make -j12`; select parallelism appropriate to th
 
 ## Incremental policy and troubleshooting
 
-If a build fails, preserve `out/`, fix the first causal error, then rerun `make`. Ninja reuses completed intermediates; this bring-up succeeded by incremental continuation. Do not automatically run `make clean`, `make clobber`, or `rm -rf out`.
+If a build fails, preserve `out/`, fix the first causal error, then rerun `make`. Ninja reuses completed intermediates; this bring-up succeeded by incremental continuation. Do not automatically run `make clean`, `make clobber`, or remove `out/`.
 
-For the Mesa locale assertion, verify the effective Flex path, rebuild Flex 2.5.39 for the host, validate `program_lexer.l` and the GLSL lexer, then resume incrementally.
+For the Mesa locale assertion, run `--verify --projectgero-root "$PWD"`, confirm the effective Flex override, then resume incrementally. If the override must be recreated, run `--prepare-flex --projectgero-root "$PWD"` followed by `--apply-flex-override "$PWD"`.
 
 Warnings observed as non-fatal in this validation included invalid freedreno/virgl GPU drivers, unspecified `BOARD_SEPOLICY_VERS`, root `init.rc` command override, LLVM threads disabled, and AAPT2 resource warnings. They are not universally safe in every context.
 
