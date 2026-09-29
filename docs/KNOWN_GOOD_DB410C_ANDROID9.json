@@ -1,0 +1,69 @@
+{
+  "record": "ProjectGero DB410c Android 9 baseline",
+  "overall_status": "PARTIAL_FINALIZATION",
+  "baseline": {
+    "android_version": "9",
+    "android_tag": "android-9.0.0_r61",
+    "product": "db410c-userdebug",
+    "hardware": "Qualcomm DragonBoard 410c",
+    "kernel": "qcomlt-4.14",
+    "kernel_architecture": "arm64",
+    "userspace_architecture": "armv7-a-neon"
+  },
+  "repository": {
+    "name": "ProjectGero/android",
+    "checkout_commit_at_record_creation": "7b7fba6ea011dafd0d4487dc77af211c2623a34a",
+    "origin_master_at_record_creation": "1e215b50a78cd5a85a5663ae11c333b0ce76e2b4",
+    "build_source_commit": null,
+    "build_source_commit_note": "Not recorded in the build reports available in the finalization workspace.",
+    "checkout_state": "Shallow host-bootstrap validation checkout; 5 of 670 first-level components initialized."
+  },
+  "host": {
+    "tested": "Debian GNU/Linux 13 (trixie), x86_64",
+    "clean_environment": "fresh debootstrap --variant=minbase",
+    "bootstrap_status": "PASS",
+    "bootstrap_scope": "Clean-host setup only; no Android or kernel build was run.",
+    "ubuntu": "Supported by the setup script; no equivalent clean-host validation recorded."
+  },
+  "validation": {
+    "git_migration": "NOT_REVALIDATED_IN_FINALIZATION_CHECKOUT",
+    "component_checkout": "Prior 670-component validation reported PASS; current checkout has 5 of 670 initialized.",
+    "git_lfs": "Prior LFS validation reported PASS; full LFS state not revalidated in current checkout.",
+    "kernel_build": "PASS_RECORDED; original build report and outputs unavailable here.",
+    "android_build": "PASS_RECORDED; original build report and outputs unavailable here.",
+    "hardware_deployment": "NOT_YET_VALIDATED"
+  },
+  "previously_recorded_artifacts": {
+    "hashes_recomputed": false,
+    "items": {
+      "boot.img": "d472466adb63cdb67fcbe2f80f71d82183df2e3d5e1f11d9005de42be89a3017",
+      "recovery.img": "bc8032297a36004e71275a97dedf266885bcc6fd20fa38ebd31a0b66b8091147",
+      "system.img": "b07a131517bdb346952d904feecc469b78dd627de6f0006bd1c8a1720c88fc5c",
+      "Image.gz": "572af63b9be1daa799caefa3a930649b187d6bbcc89282ceca95d611482998f9",
+      "apq8016-sbc.dtb": "d23e24b4c02c1b723577e7ca47f90b14af64d3c689c7383ff013f07199917c7c",
+      "db410c-qcomlt-4.14.gz-dtb": "05859a14b77933b9c71779f0d985f0f5ae7157f6be3d51688e6f9f69aadde4cf"
+    },
+    "archive_status": "NOT_CREATED_OUTPUTS_UNAVAILABLE",
+    "sha256sums_status": "NOT_GENERATED",
+    "file_sizes_status": "NOT_GENERATED",
+    "build_output_deleted": false
+  },
+  "flex_runtime_override": {
+    "status": "NO_OVERRIDE_PRESENT",
+    "tracked_file_sha256": "0e1e3da39d3fd823bd0af023152ee3c86a9a758da1eb876e5a9fdf0e17b6a642",
+    "tracked_file_mode": "755",
+    "matches_clean_host_validation_original": true
+  },
+  "storage": {
+    "android_out": "absent",
+    "kernel_out_db410c": "absent",
+    "combined_kernel_artifact": "absent",
+    "available_filesystem_space": "377 GiB",
+    "reclaimable_successful_build_output": "Not measurable; expected output directories were absent."
+  },
+  "release_tag": {
+    "existing_convention_found": false,
+    "recommended_candidate": "android-9.0.0_r61-db410c-v1",
+    "created": false
+  }
+}

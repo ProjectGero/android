@@ -4,13 +4,13 @@ This guide documents the successful ProjectGero Android 9 `db410c-userdebug` bui
 
 ## Host bootstrap
 
-Use an x86_64 Debian or Ubuntu host. ProjectGero provides a repeatable bootstrap for the small, validated host dependency set: 20 apt packages, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39.
+The setup script supports x86_64 Debian and Ubuntu hosts. **Tested:** Debian GNU/Linux 13 (trixie), x86_64, from a fresh minimal `debootstrap --variant=minbase` environment. The clean-host run validated host setup only; it did not run an Android build or kernel build. Ubuntu is supported by the script, but has not had an equivalent clean-host validation.
 
-Tested host: Debian GNU/Linux 13 (trixie), x86_64. The fresh-host bootstrap validation used a `HOST_BOOTSTRAP_TEST_ONLY` checkout with only the source components required for the host checks; it did not run an Android build.
+ProjectGero provides a repeatable bootstrap for the validated host dependency set: 20 apt packages, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39. The clean-host check used a `HOST_BOOTSTRAP_TEST_ONLY` checkout with only the source components needed for those checks.
 
 The private Python setup also enables the versioned `pip` and `setuptools` wheels bundled with Python 2.7.18's `ensurepip`, which are needed to install the validated legacy Python source distributions on a clean host.
 
-This build does **not** require Android Studio, an Android SDK, or a modern NDK. The checkout already pins the historical compiler and toolchain prebuilts that Android 9 needs.
+This build does **not** require Android Studio or a normal external Android SDK/NDK installation. ProjectGero supplies and pins the historical GCC, Clang, JDK, and other tool prebuilts used by this Android 9 build. The host bootstrap supplies Linux packages, legacy host ABI libraries, Python 2.7.18 and its modules, modern-host-compatible Flex, and environment setup.
 
 The bootstrap never replaces `/usr/bin/python`; its private tools default to `$HOME/.local/projectgero-tools`. It also never creates unsafe `libtinfo.so.6` or `libncurses.so.6` symlinks: the historical prebuilts require ABI-compatible `.so.5` libraries.
 
@@ -24,7 +24,7 @@ git clone --depth 1 https://github.com/ProjectGero/android.git
 cd android
 git -c submodule.recurse=false submodule update --init --depth 1 --jobs 8
 
-# Inspect without changing the host. This reports READY or MISSING items.
+# Read-only diagnostic. Missing requirements are reported without changes.
 ./scripts/setup-db410c-android9-host.sh --check --projectgero-root "$PWD"
 
 # Install only missing validated host dependencies and verify them afterwards.
@@ -38,6 +38,15 @@ git -c submodule.recurse=false submodule update --init --depth 1 --jobs 8
 source scripts/projectgero-db410c-env.sh
 ```
 
+Bootstrap mode behavior:
+
+- `--check` is a read-only diagnostic. It can report missing requirements and
+  still exits 0 when the diagnostic itself succeeds.
+- `--install` installs or prepares missing validated requirements, then checks
+  readiness. It exits nonzero if required items remain missing.
+- `--verify` is a strict read-only readiness gate. It exits 0 only when all
+  required host and supplied source checks pass.
+
 `--install` uses `sudo` only for apt packages; all ProjectGero-owned host tools live under the invoking user's tools prefix. It downloads only over HTTPS and validates the Python, Mako, MarkupSafe, and ProjectGero-pinned Flex source checksums. On a Debian/Ubuntu release where legacy ABI packages are absent from configured apt repositories, the script requires explicit HTTPS URL and SHA256 environment-variable pairs rather than using a random or stale mirror; `--help` lists those variables.
 
 Run the final read-only validation at any time:
@@ -46,7 +55,12 @@ Run the final read-only validation at any time:
 ./scripts/setup-db410c-android9-host.sh --verify --projectgero-root "$PWD"
 ```
 
-This initializes the 670 ProjectGero first-level components. Do not use `git clone --recurse-submodules`: component-owned nested upstream submodules are intentionally not initialized. Git LFS must materialize selected payloads; affected paths include `device/google/wahoo-kernel`, `tools/dexter`, `prebuilts/clang/host/linux-x86`, `tools/external/gradle`, `prebuilts/jdk/jdk9`, `prebuilts/misc`, and `prebuilts/tools`.
+The submodule command initializes the 670 ProjectGero first-level components.
+Do not use `git clone --recurse-submodules`: component-owned nested upstream
+submodules are intentionally not initialized. Git LFS must materialize selected
+payloads; affected paths include `device/google/wahoo-kernel`, `tools/dexter`,
+`prebuilts/clang/host/linux-x86`, `tools/external/gradle`, `prebuilts/jdk/jdk9`,
+`prebuilts/misc`, and `prebuilts/tools`.
 
 ## Modern-host Flex 2.5.39 compatibility
 

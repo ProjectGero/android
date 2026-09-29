@@ -69,17 +69,37 @@ materialized. Current LFS-managed component paths include:
 
 ## Quick build overview
 
-The verified DB410c workflow uses a Linux x86_64 host, a dedicated Python
-2.7.18 runtime, an ARM64 qcomlt kernel build, and then the Android
-`db410c-userdebug` build. On modern glibc hosts, the historical Flex 2.5.39
-tool requires a locally rebuilt runtime override; that executable is local
-build state and is not part of ProjectGero Git history.
+The verified DB410c workflow uses an x86_64 Linux host, a dedicated Python
+2.7.18 runtime, a rebuilt Flex 2.5.39 runtime override, an ARM64 qcomlt-4.14
+kernel build, and then the Android `db410c-userdebug` build.
+
+**Tested host:** Debian GNU/Linux 13 (trixie), x86_64, validated from a fresh
+minimal `debootstrap --variant=minbase` environment. That clean-host run
+validated host setup only; it did not build Android or the kernel. The setup
+script supports Debian and Ubuntu x86_64 hosts, but Ubuntu has not had an
+equivalent clean-host validation.
+
+ProjectGero does not require an external Android Studio SDK or NDK. The source
+checkout pins the historical GCC, Clang, JDK, and other tool prebuilts used by
+this Android 9 build. The host bootstrap supplies Linux packages, legacy ABI
+libraries, Python 2.7.18 and its modules, rebuilt Flex, and shell environment
+setup.
+
+The host setup script has three validation modes: `--check` is read-only and
+returns success when the diagnostic completes, even if it reports missing
+requirements; `--install` prepares missing validated requirements and checks
+readiness afterward; `--verify` is a strict read-only readiness gate and
+returns success only when the host is ready. See the detailed guide for the
+full workflow and local-state handling.
 
 ## Detailed DB410c build guide
 
 The [verified DB410c Android 9 build guide](docs/DB410C_ANDROID9_BUILD.md)
 documents prerequisites, LFS checkout, the local-only Flex workflow, kernel
 build, incremental Android builds, expected artifacts, and troubleshooting.
+The [known-good baseline record](docs/KNOWN_GOOD_DB410C_ANDROID9.md) lists the
+previously recorded artifact hashes and clearly marks what was not reverified
+or archived in the finalization workspace.
 
 ## Repository conventions
 
