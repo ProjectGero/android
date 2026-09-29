@@ -98,7 +98,18 @@ command_ready() { command -v "$1" >/dev/null 2>&1; }
 package_installed() { dpkg-query -W -f='${db:Status-Status}' "$1" 2>/dev/null | grep -qx installed; }
 
 library_present() {
-  ldconfig -p 2>/dev/null | awk '{print $1}' | grep -Fxq "$1"
+  local ldconfig_bin
+  ldconfig_bin=$(command -v ldconfig 2>/dev/null || true)
+  if [[ -z $ldconfig_bin ]]; then
+    for candidate in /sbin/ldconfig /usr/sbin/ldconfig; do
+      if [[ -x $candidate ]]; then
+        ldconfig_bin=$candidate
+        break
+      fi
+    done
+  fi
+  [[ -n $ldconfig_bin ]] || return 1
+  "$ldconfig_bin" -p 2>/dev/null | awk '{print $1}' | grep -Fxq "$1"
 }
 
 python_bin() { printf '%s/python2/bin/python\n' "$PROJECTGERO_TOOLS_DIR"; }
