@@ -98,8 +98,8 @@ The [verified DB410c Android 9 build guide](docs/DB410C_ANDROID9_BUILD.md)
 documents prerequisites, LFS checkout, the local-only Flex workflow, kernel
 build, incremental Android builds, expected artifacts, and troubleshooting.
 The [known-good baseline record](docs/KNOWN_GOOD_DB410C_ANDROID9.md) lists the
-previously recorded artifact hashes and clearly marks what was not reverified
-or archived in the finalization workspace.
+artifact hashes rechecked against the completed build archive and records the
+tested source revision, host-bootstrap scope, and hardware-validation status.
 
 ## Repository conventions
 

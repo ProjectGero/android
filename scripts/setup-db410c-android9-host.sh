@@ -21,7 +21,7 @@ readonly MARKUPSAFE_SHA256="29872e92839765e546828bb7754a68c418d927cd064fd4708fab
 readonly FLEX_ARCHIVE_SHA256="71dd1b58158c935027104c830c019e48c73250708af5def45ea256c789318948"
 
 readonly -a REQUIRED_PACKAGES=(
-  bc m4 zip unzip wget curl git git-lfs build-essential gcc g++ make
+  bc m4 zip unzip wget curl git git-lfs build-essential gcc g++ make gettext rsync
   zlib1g zlib1g-dev libffi-dev libbz2-dev libreadline-dev libsqlite3-dev
   file ca-certificates
 )

@@ -1,52 +1,71 @@
-# ProjectGero DB410c Android 9 baseline record
+# ProjectGero DB410c Android 9 known-good baseline
 
-This record captures the ProjectGero revision checked at finalization start and
-the previously recorded successful build outputs. The available build reports
-and output files were not present in the finalization workspace, so the output
-hashes below were not recomputed here and cannot be tied to a verified build
-source commit from the available evidence. See
-[`KNOWN_GOOD_DB410C_ANDROID9.json`](KNOWN_GOOD_DB410C_ANDROID9.json) for
-machine-readable details.
+This record identifies the source revision and host configuration used for the
+verified ProjectGero Android 9 build. Artifact hashes below were recomputed
+from the completed build outputs. The archive manifest verified all 25 archived
+payload and report files.
 
-## Baseline
+## Baseline and validation
 
 - Android: 9, `android-9.0.0_r61`
 - Product: `db410c-userdebug` for Qualcomm DragonBoard 410c
-- Architecture: ARM64 qcomlt-4.14 kernel with ARM32 `armv7-a-neon` userspace
-- ProjectGero/android checkout at record creation:
-  `7b7fba6ea011dafd0d4487dc77af211c2623a34a`
-- `origin/master` at record creation:
-  `1e215b50a78cd5a85a5663ae11c333b0ce76e2b4`
-- Tested host setup: Debian GNU/Linux 13 (trixie), x86_64, fresh minimal
-  `debootstrap --variant=minbase` environment
-- Host bootstrap: PASS; the clean-host validation covered setup, not Android or
-  kernel builds
-- Kernel build: PASS in the prior validation record
-- Android build: PASS in the prior validation record
-- Physical DB410c deployment: **NOT YET VALIDATED**
+- Architecture: ARM64 qcomlt-4.14 kernel and ARM32 `armv7-a-neon` userspace
+- ProjectGero/android build source commit: `804afc10bec74e324f132e8907b9cc7adc3d2bb2`
+- Source checkout: all 670 first-level components initialized; no missing
+  components, gitlink mismatches, or conflicts
+- Git LFS: 7 repositories and 13 selected payloads materialized; total
+  materialized payload size 1,617,939,610 bytes; all seven repository checks
+  passed
+- Full Android build host: Debian GNU/Linux 13 (trixie) 13.6, x86_64
+- Android build: **PASS**, `make -j6`; final incremental invocation completed
+  in 25 minutes 37 seconds
+- Kernel build: **PASS**, qcomlt-4.14 `qcom_defconfig`, ARM64 with
+  `CONFIG_ARM64=y` and `CONFIG_ARCH_QCOM=y`
+- Hardware deployment: **NOT YET VALIDATED**
 
-The build source commit was not recorded in the reports available in this
-workspace. The current checkout is a shallow host-bootstrap validation tree,
-with only 5 of 670 first-level components initialized. Treat these hashes as
-the prior successful output reference, not as a newly verified archive.
+A separate fresh minimal `debootstrap --variant=minbase` run on Debian 13.7
+passed host setup. That test validated the original 20-package host setup only;
+it did not build Android or the kernel. The complete build host was separately
+checked with the current 22-package bootstrap, including `gettext` for Mesa's
+`xgettext` step and `rsync` for recovery-image assembly. `--install` and strict
+`--verify` both ended with `PROJECTGERO DB410C HOST: READY`. Ubuntu is supported
+by the script but has not had equivalent clean-host validation.
 
-## Previously recorded artifact hashes
+The successful Android build used the host-rebuilt Flex 2.5.39 runtime
+override. The override was restored afterwards; the tracked Flex executable
+matches its original SHA-256 and mode. No physical device was flashed.
 
-| Artifact | SHA-256 |
-|---|---|
-| `boot.img` | `d472466adb63cdb67fcbe2f80f71d82183df2e3d5e1f11d9005de42be89a3017` |
-| `recovery.img` | `bc8032297a36004e71275a97dedf266885bcc6fd20fa38ebd31a0b66b8091147` |
-| `system.img` | `b07a131517bdb346952d904feecc469b78dd627de6f0006bd1c8a1720c88fc5c` |
-| `Image.gz` | `572af63b9be1daa799caefa3a930649b187d6bbcc89282ceca95d611482998f9` |
-| `apq8016-sbc.dtb` | `d23e24b4c02c1b723577e7ca47f90b14af64d3c689c7383ff013f07199917c7c` |
-| `db410c-qcomlt-4.14.gz-dtb` | `05859a14b77933b9c71779f0d985f0f5ae7157f6be3d51688e6f9f69aadde4cf` |
+## Android artifacts
 
-The artifact archive, `SHA256SUMS`, and `file-sizes.txt` have not been created
-because the successful build outputs were absent from the workspace. No build
-output has been deleted.
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `boot.img` | 10,442,752 | `993fd44a59ed3960f3c33ea559a914a265ab823cb2ce3f33d10dda5a0758f3b3` |
+| `recovery.img` | 14,768,128 | `b046f0a8f6e2e1ab39cda04c63cdfa5fdacc24d47b836784346c927cf9213580` |
+| `system.img` | 728,248,564 | `cd11d25f2ce92e7ea8b8499077cf72f5a9034df529afacf94c0719f95bee6b34` |
+| `userdata.img` | 1,724,804 | `e0bd7d440b57cd2bea8e7ce5a7acdc1936f3ddbed29d44bff7940675c1e87285` |
+| `cache.img` | 73,876 | `853ba3156e4625ba333a89d504fc427fc2034d39c7f3620af9bc40fabda8ff0a` |
+
+The system, userdata, and cache images are Android sparse images. Generated
+build properties and `installed-files.txt` are also preserved with the build
+reference. No target-files package was generated.
+
+## Kernel artifacts
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `Image.gz` | 8,765,581 | `1cb932ec6953ea8f2db3953b1a8421a84cdd1396b0009a4b18e7096a9643d728` |
+| `apq8016-sbc.dtb` | 53,229 | `d23e24b4c02c1b723577e7ca47f90b14af64d3c689c7383ff013f07199917c7c` |
+| `db410c-qcomlt-4.14.gz-dtb` | 8,818,810 | `f3e5d2d8ebc9a9a72246b299e3f20d0fef449f4b84c4d7360c5843d67b87d4a2` |
+
+The DTB hash matches the earlier successful reference. The compressed kernel
+image hash differs slightly from that earlier record; the kernel configuration
+and build checks passed.
 
 ## Release tag
 
-No existing local or remote tag convention was found. Recommended candidate:
-`android-9.0.0_r61-db410c-v1`. No tag was created; this would establish a new
-public naming convention.
+No ProjectGero/android tag convention was found locally or on the remote.
+Recommended candidate: `android-9.0.0_r61-db410c-v1`. No tag was created because
+this would establish a new public versioning convention.
+
+For machine-readable details, see
+[`KNOWN_GOOD_DB410C_ANDROID9.json`](KNOWN_GOOD_DB410C_ANDROID9.json).

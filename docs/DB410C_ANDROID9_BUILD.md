@@ -6,7 +6,7 @@ This guide documents the successful ProjectGero Android 9 `db410c-userdebug` bui
 
 The setup script supports x86_64 Debian and Ubuntu hosts. **Tested:** Debian GNU/Linux 13 (trixie), x86_64, from a fresh minimal `debootstrap --variant=minbase` environment. The clean-host run validated host setup only; it did not run an Android build or kernel build. Ubuntu is supported by the script, but has not had an equivalent clean-host validation.
 
-ProjectGero provides a repeatable bootstrap for the validated host dependency set: 20 apt packages, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39. The clean-host check used a `HOST_BOOTSTRAP_TEST_ONLY` checkout with only the source components needed for those checks.
+ProjectGero provides a repeatable bootstrap for the validated host dependency set: 22 apt packages, including `gettext` for Mesa's `xgettext` build step and `rsync` for recovery-image assembly, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39. The persisted clean-host check covered the original 20-package host-setup set using a `HOST_BOOTSTRAP_TEST_ONLY` checkout; it did not run Android or kernel builds. The full Android build exposed the additional `gettext` and `rsync` requirements.
 
 The private Python setup also enables the versioned `pip` and `setuptools` wheels bundled with Python 2.7.18's `ensurepip`, which are needed to install the validated legacy Python source distributions on a clean host.
 
@@ -92,7 +92,7 @@ source scripts/projectgero-db410c-env.sh
 hash -r
 ```
 
-Assert the environment helper again after `lunch` so build tools select the intended Python. Expected variables are `PLATFORM_VERSION=9`, `TARGET_PRODUCT=db410c`, `TARGET_BUILD_VARIANT=userdebug`, `TARGET_ARCH=arm`, and `TARGET_ARCH_VARIANT=armv7-a-neon`.
+Assert the environment helper again after `lunch` so build tools select the intended Python. `lunch` should report `PLATFORM_VERSION=9`, `TARGET_PRODUCT=db410c`, `TARGET_BUILD_VARIANT=userdebug`, `TARGET_ARCH=arm`, and `TARGET_ARCH_VARIANT=armv7-a-neon`; query individual values with `get_build_var`.
 
 Envsetup generates ignored local directories under `device/linaro/generic/`: `db410c`, `linaro_arm`, `linaro_arm64`, `linaro_arm64_only`, and `linaro_x86_64`. Do not commit them. ProjectGero already contains the persistent `PRODUCT_NAME` compatibility fix in `vendorsetup.sh`.
 
@@ -132,7 +132,13 @@ python -c 'import zlib; print("zlib OK:", zlib.ZLIB_VERSION)'
 make -j"$(nproc)"
 ```
 
-The successful validation used `make -j12`; select parallelism appropriate to the host. Principal outputs are under `out/target/product/db410c/`: `boot.img`, `recovery.img`, `system.img`, `userdata.img`, and `cache.img`. Do not expect binary-identical hashes across different hosts.
+An earlier successful validation used `make -j12`. This finalization completed
+the build with `make -j6` on a 12-core Debian 13 host to retain memory headroom;
+its final incremental invocation completed in 25 minutes 37 seconds. Resume
+incrementally after installing any missing host dependency. Principal outputs
+are under `out/target/product/db410c/`: `boot.img`, `recovery.img`, `system.img`,
+`userdata.img`, and `cache.img`. Do not expect binary-identical hashes across
+different hosts or build environments.
 
 ## Incremental policy and troubleshooting
 
