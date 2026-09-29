@@ -1,0 +1,125 @@
+{
+  "result": "PROJECTGERO FRESH HOST BOOTSTRAP: PASS",
+  "validated_at": "2026-09-29",
+  "host": {
+    "distribution": "Debian GNU/Linux",
+    "version": "13 (trixie)",
+    "point_release": "13.7",
+    "architecture": "x86_64",
+    "image": "fresh debootstrap --variant=minbase root filesystem",
+    "baseline_projectgero_tools_present": false
+  },
+  "checkout": {
+    "mode": "HOST_BOOTSTRAP_TEST_ONLY",
+    "top_level_commit": "1e215b50a78cd5a85a5663ae11c333b0ce76e2b4",
+    "top_level_clone_depth": 1,
+    "initialized_first_level_component_count": 5,
+    "documented_first_level_component_count": 670,
+    "initialized_components": [
+      "external/mesa3d",
+      "prebuilts/clang/host/linux-x86",
+      "prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9",
+      "prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9",
+      "prebuilts/misc"
+    ]
+  },
+  "checks": {
+    "pre_install_check": {
+      "status": "PASS",
+      "exit_code": 0,
+      "missing_requirements_reported": 28,
+      "dpkg_status_unchanged": true,
+      "apt_archive_cache_unchanged": true,
+      "projectgero_tools_prefix_unchanged": true
+    },
+    "first_install": {
+      "status": "PASS",
+      "exit_code": 0,
+      "ready": true
+    },
+    "verify": {
+      "status": "PASS",
+      "exit_code": 0,
+      "ready": true,
+      "runs": ["after first install", "after second install", "after Flex restore"]
+    },
+    "second_install": {
+      "status": "IDEMPOTENT",
+      "exit_code": 0,
+      "apt_dependencies_reused": true,
+      "python_reused_without_rebuild": true,
+      "flex_reused_without_rebuild": true,
+      "python_hash_unchanged": true,
+      "python_mtime_unchanged": true,
+      "flex_hash_unchanged": true,
+      "flex_mtime_unchanged": true
+    },
+    "python": {
+      "status": "PASS",
+      "version": "2.7.18",
+      "zlib_import": true,
+      "pip_version": "19.2.3",
+      "setuptools_version": "41.2.0"
+    },
+    "mako": {
+      "status": "PASS",
+      "version": "1.1.4"
+    },
+    "markupsafe": {
+      "status": "PASS",
+      "version": "1.1.1"
+    },
+    "legacy_abi": {
+      "status": "PASS",
+      "packages": {
+        "libtinfo5": {
+          "version": "6.4-4",
+          "url": "https://deb.debian.org/debian/pool/main/n/ncurses/libtinfo5_6.4-4_amd64.deb",
+          "sha256": "dd347f794e651039e7b4c391f86c674fed7f415b3dca6b0937beb0d470f09c1a"
+        },
+        "libncurses5": {
+          "version": "6.4-4",
+          "url": "https://deb.debian.org/debian/pool/main/n/ncurses/libncurses5_6.4-4_amd64.deb",
+          "sha256": "02f4f7f52c4ce2fc4021793a931bfd85f7870554b8e4d56576d73a4ed0bdb390"
+        }
+      },
+      "resolved_abi": ".so.5.9",
+      "fake_so6_symlink_used": false
+    },
+    "flex": {
+      "status": "PASS",
+      "version": "2.5.39",
+      "program_lexer": "PASS",
+      "glsl_lexer": "PASS",
+      "effective_binary_sha256": "93026daf066c08031f035bfc39863bdc26553ca55fbf667a2e16c6fd82b16fee"
+    },
+    "flex_override": {
+      "status": "PASS",
+      "only_expected_component_file_modified": true,
+      "effective_binary_matches_rebuilt": true,
+      "program_lexer": "PASS",
+      "original_sha256": "0e1e3da39d3fd823bd0af023152ee3c86a9a758da1eb876e5a9fdf0e17b6a642",
+      "restored_sha256": "0e1e3da39d3fd823bd0af023152ee3c86a9a758da1eb876e5a9fdf0e17b6a642",
+      "original_mode": "755",
+      "restored_mode": "755",
+      "component_clean_after_restore": true,
+      "no_unrelated_top_level_change": true,
+      "override_state_files_after_restore": 0
+    },
+    "environment_helper": {
+      "status": "PASS",
+      "python_path_first": true,
+      "LC_ALL": "C",
+      "LANG": "C",
+      "python_version": "2.7.18"
+    }
+  },
+  "fixes": [
+    "Enable Python 2.7.18 bundled ensurepip wheels to supply pip/setuptools for legacy Python source distributions.",
+    "Build Flex lib/libcompat.la before the top-level flex target.",
+    "Recognize the expected Flex version when the installed binary is named flex-2.5.39."
+  ],
+  "android_build_run": false,
+  "kernel_build_run": false,
+  "hardware_deploy_or_flash_run": false
+}

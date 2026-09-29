@@ -122,10 +122,16 @@ markupsafe_ready() {
   "$python" -c 'import markupsafe; assert markupsafe.__version__ == "1.1.1"' >/dev/null 2>&1
 }
 
+python_packaging_ready() {
+  local python
+  python=$(python_bin)
+  "$python" -c 'import pip; import setuptools' >/dev/null 2>&1
+}
+
 flex_ready() {
   local flex
   flex=$(flex_bin)
-  [[ -x $flex ]] && "$flex" --version 2>&1 | grep -Eq "flex[[:space:]]+$FLEX_VERSION"
+  [[ -x $flex ]] && "$flex" --version 2>&1 | grep -Fq " $FLEX_VERSION"
 }
 
 wrapper_uses_env_python() {
@@ -290,6 +296,16 @@ install_python_module() {
 
 install_python_modules() {
   install_python
+  if ! python_packaging_ready; then
+    local python
+    python=$(python_bin)
+    # Python 2.7.18 bundles pinned pip/setuptools wheels in ensurepip. Bootstrap
+    # them locally so legacy sdists that import setuptools install on a clean host.
+    "$python" -m ensurepip --default-pip
+    python_packaging_ready || die "Could not provision the bundled Python packaging tools."
+  else
+    printf 'Reusing private Python packaging tools.\n'
+  fi
   markupsafe_ready || install_python_module MarkupSafe "$MARKUPSAFE_VERSION" "$MARKUPSAFE_URL" "$MARKUPSAFE_SHA256"
   mako_ready || install_python_module Mako "$MAKO_VERSION" "$MAKO_URL" "$MAKO_SHA256"
   markupsafe_ready || die "MarkupSafe $MARKUPSAFE_VERSION installation failed."
@@ -322,7 +338,7 @@ prepare_flex() {
   fi
   [[ $(grep -Fc 'lerrif(_("Unable to allocate %d of stack"),' "$source/scanflags.c" || true) == 1 ]] || die "Flex compatibility patch did not apply exactly once."
   jobs=$(nproc)
-  (cd "$source" && ./configure && make -j"$jobs" flex)
+  (cd "$source" && ./configure && make -C lib libcompat.la && make -j"$jobs" flex)
   flex="$source/flex"
   "$flex" --version | grep -Eq "flex[[:space:]]+$FLEX_VERSION" || die "Rebuilt Flex did not report $FLEX_VERSION."
   mkdir -p "$PROJECTGERO_TOOLS_DIR/flex/bin"

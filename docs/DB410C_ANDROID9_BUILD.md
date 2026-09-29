@@ -6,6 +6,10 @@ This guide documents the successful ProjectGero Android 9 `db410c-userdebug` bui
 
 Use an x86_64 Debian or Ubuntu host. ProjectGero provides a repeatable bootstrap for the small, validated host dependency set: 20 apt packages, ABI-compatible legacy ncurses/tinfo libraries, a private Python 2.7.18 runtime with zlib, Mako 1.1.4, MarkupSafe 1.1.1, and a modern-host rebuild of Flex 2.5.39.
 
+Tested host: Debian GNU/Linux 13 (trixie), x86_64. The fresh-host bootstrap validation used a `HOST_BOOTSTRAP_TEST_ONLY` checkout with only the source components required for the host checks; it did not run an Android build.
+
+The private Python setup also enables the versioned `pip` and `setuptools` wheels bundled with Python 2.7.18's `ensurepip`, which are needed to install the validated legacy Python source distributions on a clean host.
+
 This build does **not** require Android Studio, an Android SDK, or a modern NDK. The checkout already pins the historical compiler and toolchain prebuilts that Android 9 needs.
 
 The bootstrap never replaces `/usr/bin/python`; its private tools default to `$HOME/.local/projectgero-tools`. It also never creates unsafe `libtinfo.so.6` or `libncurses.so.6` symlinks: the historical prebuilts require ABI-compatible `.so.5` libraries.
